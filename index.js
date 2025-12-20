@@ -22,9 +22,10 @@ app.post('/verificar-lixo', async (req, res) => {
 
         const responseText = result.response.text().replace(/```json|```/g, "").trim();
         res.json(JSON.parse(responseText));
-    } catch (e) {
-        res.status(500).json({ aprovado: false, motivo: "Erro no servidor" });
-    }
+    } } catch (e) {
+    console.error("ERRO DETALHADO:", e); // Aparecerá nos Logs do Render
+    res.status(500).json({ aprovado: false, motivo: e.message }); // Aparecerá no teu telemóvel
+}
 });
 
 const PORT = process.env.PORT || 3000; 

@@ -22,13 +22,15 @@ app.post('/verificar-lixo', async (req, res) => {
 
         const responseText = result.response.text().replace(/```json|```/g, "").trim();
         res.json(JSON.parse(responseText));
-    } } catch (e) {
-    console.error("ERRO DETALHADO:", e); // Aparecerá nos Logs do Render
-    res.status(500).json({ aprovado: false, motivo: e.message }); // Aparecerá no teu telemóvel
 
+    } catch (e) {
+        console.error("ERRO NO SERVIDOR:", e);
+        // Agora o telemóvel vai mostrar o erro real (ex: API key inválida)
+        res.status(500).json({ aprovado: false, motivo: "Erro: " + e.message });
+    }
 });
 
-const PORT = process.env.PORT || 3000; 
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor Online na porta ${PORT}`);

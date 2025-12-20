@@ -25,7 +25,7 @@ app.post('/verificar-lixo', async (req, res) => {
     } } catch (e) {
     console.error("ERRO DETALHADO:", e); // Aparecerá nos Logs do Render
     res.status(500).json({ aprovado: false, motivo: e.message }); // Aparecerá no teu telemóvel
-}
+
 });
 
 const PORT = process.env.PORT || 3000; 

@@ -15,6 +15,7 @@ app.post('/verificar-lixo', async (req, res) => {
         // FORÇAR O USO DA V1BETA NA CHAMADA DO MODELO
         const model = genAI.getGenerativeModel(
             { modelName = "gemini-2.5-pro" }, 
+            { apiVersion: 'v1beta' } // <--- ESTA É A LINHA MÁGICA
         );
 
         const prompt = `Analisa a foto da ${praia}. Responde APENAS JSON: {"aprovado": true, "motivo": "bom"} ou {"aprovado": false, "motivo": "mau"}`;

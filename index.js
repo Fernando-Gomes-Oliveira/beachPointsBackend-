@@ -4,13 +4,14 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 
+// Inicializa a API com a chave das variáveis de ambiente
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.post('/verificar-lixo', async (req, res) => {
     try {
         const { imagemBase64, praia } = req.body;
         
-        // Chamada ao modelo específico que pretendes
+        // Conforme sugerido no Stack Overflow, usamos o alias 'latest' ou a versão 2.0
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
         const prompt = `Analisa esta foto da praia ${praia}. 
@@ -23,7 +24,8 @@ app.post('/verificar-lixo', async (req, res) => {
         ]);
 
         const response = await result.response;
-        let text = response.text().replace(/```json|```/g, "").trim();
+        // Limpeza de Markdown caso a IA responda com blocos de código
+        const text = response.text().replace(/```json|```/g, "").trim();
         
         res.json(JSON.parse(text));
 
@@ -38,5 +40,5 @@ app.post('/verificar-lixo', async (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor Ativo com gemini-flash-latest na porta ${PORT}`);
+    console.log(`Servidor Ativo na porta ${PORT}`);
 });

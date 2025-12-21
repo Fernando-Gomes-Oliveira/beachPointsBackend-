@@ -4,24 +4,21 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 
-// Forçamos o uso da API v1 estável em vez da v1beta
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.post('/verificar-lixo', async (req, res) => {
     try {
         const { imagemBase64, praia } = req.body;
         
-        // Se o erro 404 persistir, vamos tentar o nome completo do modelo
-        const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-flash-latest" 
-});
+        // Chamada ao modelo específico que pretendes
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
-        const prompt = `Analisa esta foto da praia ${praia}.
-        Regras: 1. Deve haver lixo. 2. Sem rostos. 3. Foto nítida.
+        const prompt = `Analisa esta foto da praia ${praia}. 
+        Regras: 1. Deve haver lixo. 2. Sem rostos humanos. 3. Foto nítida.
         Responde apenas JSON: {"aprovado": true, "motivo": "bom trabalho"} ou {"aprovado": false, "motivo": "razão"}`;
 
         const result = await model.generateContent([
-            prompt,
+            { text: prompt },
             { inlineData: { data: imagemBase64, mimeType: "image/jpeg" } }
         ]);
 
@@ -31,12 +28,15 @@ app.post('/verificar-lixo', async (req, res) => {
         res.json(JSON.parse(text));
 
     } catch (e) {
-        console.error("ERRO DETALHADO:", e);
-        res.status(500).json({ aprovado: false, motivo: "Erro: " + e.message });
+        console.error("ERRO NO SERVIDOR:", e.message);
+        res.status(500).json({ 
+            aprovado: false, 
+            motivo: "Erro na IA: " + e.message 
+        });
     }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor Online na porta ${PORT}`);
+    console.log(`Servidor Ativo com gemini-flash-latest na porta ${PORT}`);
 });

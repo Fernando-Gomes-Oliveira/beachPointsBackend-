@@ -14,7 +14,7 @@ app.post('/verificar-lixo', async (req, res) => {
         
         // FORÇAR O USO DA V1BETA NA CHAMADA DO MODELO
         const model = genAI.getGenerativeModel(
-            { modelName = "gemini-2.5-pro" }, 
+            { modelName = "gemini-2.5-pro" }; 
             { apiVersion: 'v1beta' } // <--- ESTA É A LINHA MÁGICA
         );
 

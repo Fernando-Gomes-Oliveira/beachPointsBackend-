@@ -13,9 +13,8 @@ app.post('/verificar-lixo', async (req, res) => {
         
         // Se o erro 404 persistir, vamos tentar o nome completo do modelo
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
-            apiVersion: "v1" 
-        });
+    model: "gemini-1.5-flash-latest" 
+});
 
         const prompt = `Analisa esta foto da praia ${praia}.
         Regras: 1. Deve haver lixo. 2. Sem rostos. 3. Foto nítida.

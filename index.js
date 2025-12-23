@@ -4,14 +4,13 @@ import { GoogleGenAI } from "@google/genai";
 const app = express();
 app.use(express.json({ limit: "10mb" }));
 
-// Inicializa a API com a chave do Render
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+    apiKey: process.env.GEMINI_API_KEY,
 });
 
-const modelName = "gemini-2.5-flash";
+// Mantida a tua versão conforme solicitado
+const modelName = "gemini-2.5-flash"; 
 
-// --- BASE DE DADOS DE LOCALIZAÇÃO ---
 const PRAIAS_COORDS = {
     "Praia de Matosinhos": { lat: 41.19573809, lon: -8.70907909 },
     "Praia da Rocha": { lat: 37.11773, lon: -8.53642 },
@@ -19,7 +18,6 @@ const PRAIAS_COORDS = {
     "Costa da Caparica": { lat: 38.6421, lon: -9.2315 } 
 };
 
-// --- FUNÇÃO DE DISTÂNCIA ---
 function getDistanciaKM(lat1, lon1, lat2, lon2) {
     const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -31,73 +29,77 @@ function getDistanciaKM(lat1, lon1, lat2, lon2) {
 }
 
 app.post("/verificar-lixo", async (req, res) => {
-  try {
-    // Adicionamos usuario, lat e lon aos dados recebidos
-    const { imagemBase64, praia, usuario, lat, lon } = req.body;
+    try {
+        const { imagemBase64, praia, usuario, lat, lon } = req.body;
 
-    // 1. Validar Localização (Raio de 3km)
-    if (praia !== "Outra" && PRAIAS_COORDS[praia]) {
-        const km = getDistanciaKM(lat, lon, PRAIAS_COORDS[praia].lat, PRAIAS_COORDS[praia].lon);
-        if (km > 3.0) {
-            return res.json({ 
-                aprovado: false, 
-                motivo: `Distância: ${km.toFixed(1)}km. Deves estar na praia!` 
-            });
+        console.log(`Recebido pedido de: ${usuario} na praia: ${praia}`);
+
+        if (praia !== "Outra" && PRAIAS_COORDS[praia]) {
+            const km = getDistanciaKM(lat, lon, PRAIAS_COORDS[praia].lat, PRAIAS_COORDS[praia].lon);
+            if (km > 3.0) {
+                console.log(`Fora de alcance: ${km.toFixed(2)}km`);
+                return res.json({ 
+                    aprovado: false, 
+                    motivo: `Distância: ${km.toFixed(1)}km. Deves estar na praia!` 
+                });
+            }
         }
-    }
 
-    // 2. Teu Prompt atualizado com o nome do user
-    const prompt = `
-Analisa esta foto da praia ${praia}.
-Responde APENAS com JSON válido, sem texto extra.
+        const prompt = `
+            Analisa esta foto da praia ${praia}.
+            Responde APENAS com JSON válido, sem texto extra.
 
-REGRAS OBRIGATÓRIAS:
-1. Tem de haver lixo visível.
-2. Tem de haver um papel ou inscrição com o nome exato: "${usuario}".
+            REGRAS OBRIGATÓRIAS:
+            1. Tem de haver lixo visível.
+            2. Tem de haver um papel ou inscrição com o nome exato: "${usuario}".
 
-Formato obrigatório:
-{
-  "aprovado": true ou false,
-  "motivo": "texto muito curto"
-}
-`;
-
-    const result = await ai.models.generateContent({
-      model: modelName,
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
+            Formato obrigatório:
             {
-              inlineData: {
-                data: imagemBase64,
-                mimeType: "image/jpeg",
-              },
+              "aprovado": true ou false,
+              "motivo": "texto muito curto"
+            }
+        `;
+
+        const model = ai.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent([
+            prompt,
+            {
+                inlineData: {
+                    data: imagemBase64,
+                    mimeType: "image/jpeg",
+                },
             },
-          ],
-        },
-      ],
-    });
+        ]);
 
-    const text = result.text.replace(/```json|```/g, "").trim();
+        // --- AQUI ESTÁ A MÁGICA PARA VER OS LOGS ---
+        const response = await result.response;
+        const text = response.text();
+        
+        console.log("------------------------------------");
+        console.log("RESPOSTA DA IA:");
+        console.log(text); // Aqui vês no Render o que ela disse
+        console.log("------------------------------------");
 
-    const jsonStart = text.indexOf("{");
-    const jsonEnd = text.lastIndexOf("}");
-    const jsonLimpo = text.slice(jsonStart, jsonEnd + 1);
+        // Limpeza de segurança para garantir que pegamos apenas o JSON
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        
+        if (jsonMatch) {
+            const jsonFinal = JSON.parse(jsonMatch[0]);
+            res.json(jsonFinal);
+        } else {
+            throw new Error("Resposta da IA não contém JSON válido");
+        }
 
-    res.json(JSON.parse(jsonLimpo));
-
-  } catch (e) {
-    console.error("ERRO NO MOMENTO DO ENVIO:", e.message);
-    res.status(500).json({
-      aprovado: false,
-      motivo: "Erro na IA: " + e.message,
-    });
-  }
+    } catch (e) {
+        console.error("ERRO NO BACKEND:", e.message);
+        res.status(500).json({
+            aprovado: false,
+            motivo: "Erro técnico: " + e.message,
+        });
+    }
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Servidor Online na porta ${PORT}`);
+    console.log(`Servidor Online na porta ${PORT}`);
 });

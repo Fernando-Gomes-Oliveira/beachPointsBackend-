@@ -46,18 +46,11 @@ app.post("/verificar-lixo", async (req, res) => {
         }
 
         const prompt = `
-            Analisa esta foto da praia ${praia}.
-            Responde APENAS com JSON válido, sem texto extra.
-
-            REGRAS OBRIGATÓRIAS:
-            1. Tem de haver lixo visível.
-            2. Tem de haver um papel ou inscrição com o nome exato: "${usuario}".
-
-            Formato obrigatório:
-            {
-              "aprovado": true ou false,
-              "motivo": "texto muito curto"
-            }
+            Analisa esta foto da praia ${praia}, vais apenas responder em formato JSON válido, nada mais. Vais analisar se tem lixo vísivel, tem de haver um papel na saca do lixo com o nome exato do "${usuario}"".
+            Vais escrever desta forma APENAS, Escreve APENAS isso.
+            "Aprovado": true or false,
+            "lixo visivel": true or false,
+            "Nome na saca do lixo" true or false.
         `;
 
         const model = ai.getGenerativeModel({ model: modelName });

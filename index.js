@@ -11,54 +11,18 @@ const ai = new GoogleGenAI({
 
 const modelName = "gemini-2.5-flash";
 
-// --- BASE DE DADOS DE LOCALIZAÇÃO ---
-const PRAIAS_COORDS = {
-    "Praia de Matosinhos": { lat: 41.19573809, lon: -8.70907909 },
-    "Praia da Rocha": { lat: 37.11773, lon: -8.53642 },
-    "Praia do Guincho": { lat: 38.73273264, lon: -9.47252022 },
-    "Costa da Caparica": { lat: 38.6421, lon: -9.2315 } 
-};
-
-// --- FUNÇÃO DE DISTÂNCIA ---
-function getDistanciaKM(lat1, lon1, lat2, lon2) {
-    const R = 6371; 
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; 
-}
-
 app.post("/verificar-lixo", async (req, res) => {
   try {
-    // Adicionamos usuario, lat e lon aos dados recebidos
-    const { imagemBase64, praia, usuario, lat, lon } = req.body;
+    const { imagemBase64, praia } = req.body;
 
-    // 1. Validar Localização (Raio de 3km)
-    if (praia !== "Outra" && PRAIAS_COORDS[praia]) {
-        const km = getDistanciaKM(lat, lon, PRAIAS_COORDS[praia].lat, PRAIAS_COORDS[praia].lon);
-        if (km > 3.0) {
-            return res.json({ 
-                aprovado: false, 
-                motivo: `Distância: ${km.toFixed(1)}km. Deves estar na praia!` 
-            });
-        }
-    }
-
-    // 2. Teu Prompt atualizado com o nome do user
     const prompt = `
 Analisa esta foto da praia ${praia}.
 Responde APENAS com JSON válido, sem texto extra.
 
-REGRAS OBRIGATÓRIAS:
-1. Tem de haver lixo visível.
-2. Tem de haver um papel ou inscrição com o nome exato: "${usuario}".
-
 Formato obrigatório:
 {
   "aprovado": true ou false,
-  "motivo": "texto muito curto"
+  "motivo": "texto curto"
 }
 `;
 

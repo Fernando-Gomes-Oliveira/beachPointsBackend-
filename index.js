@@ -50,7 +50,7 @@ app.post("/verificar-lixo", async (req, res) => {
     const prompt = `
 Analisa esta foto da praia ${praia}. Responde APENAS em formato JSON válido.
 Verifica se há lixo visível e se existe um papel/sinal na saca com o nome "${usuario}".
-TENS DE RESPONDER ASSIM, NA PARTE DO motivo diz me se eu estou mesmo na praia ou estou muito longe dela, diz me a distancia.
+TENS DE RESPONDER ASSIM
 Formato de resposta:
 {
   "aprovado": true,

@@ -48,17 +48,16 @@ app.post("/verificar-lixo", async (req, res) => {
 
     // 2. Teu Prompt atualizado com o nome do user
     const prompt = `
-Analisa esta foto da praia ${praia}, vais apenas responder em formato JSON válido, nada mais. 
-Vais analisar se tem lixo vísivel, tem de haver um papel na saca do lixo com o nome exato do "${usuario}".
+Analisa esta foto da praia ${praia}. Responde APENAS em formato JSON válido.
+Verifica se há lixo visível e se existe um papel/sinal na saca com o nome "${usuario}".
 
-Vais escrever desta forma APENAS:
+Formato de resposta:
 {
-  "localização_real": ${localizacaoReal},
-  "Aprovado": true ou false,
-  "lixo_visivel": true ou false,
-  "Nome_na_saca_do_lixo": true ou false
-}
-`;
+  "aprovado": true,
+  "lixo_visivel": true,
+  "nome_na_saca": true,
+  "motivo": "Explicação breve aqui"
+}`;
 
     const result = await ai.models.generateContent({
       model: modelName,

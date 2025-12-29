@@ -48,17 +48,15 @@ app.post("/verificar-lixo", async (req, res) => {
 
     // 2. Teu Prompt atualizado com o nome do user
     const prompt = `
-Analisa esta foto da praia ${praia}.
-Responde APENAS com JSON válido, sem texto extra.
+Analisa esta foto da praia ${praia}, vais apenas responder em formato JSON válido, nada mais. 
+Vais analisar se tem lixo vísivel, tem de haver um papel na saca do lixo com o nome exato do "${usuario}".
 
-REGRAS OBRIGATÓRIAS:
-1. Tem de haver lixo visível.
-2. Tem de haver um papel ou inscrição com o nome exato: "${usuario}".
-
-Formato obrigatório:
+Vais escrever desta forma APENAS:
 {
-  "aprovado": true ou false,
-  "motivo": "texto muito curto"
+  "localização_real": ${localizacaoReal},
+  "Aprovado": true ou false,
+  "lixo_visivel": true ou false,
+  "Nome_na_saca_do_lixo": true ou false
 }
 `;
 

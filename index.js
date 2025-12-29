@@ -32,8 +32,7 @@ function getDistanciaKM(lat1, lon1, lat2, lon2) {
 
 app.post("/verificar-lixo", async (req, res) => {
   try {
-    // Adicionamos usuario, lat e lon aos dados recebidos
-    const { imagemBase64, praia, usuario, lat, lon } = req.body;
+    const { imagemBase64, praia, utilizador, lat, lon } = req.body;
 
     // 1. Validar Localização (Raio de 3km)
     if (praia !== "Outra" && PRAIAS_COORDS[praia]) {
@@ -49,7 +48,7 @@ app.post("/verificar-lixo", async (req, res) => {
     // 2. Teu Prompt atualizado com o nome do user
     const prompt = `
 Analisa esta foto da praia ${praia}. Responde APENAS em formato JSON válido.
-Verifica se há lixo visível e se existe um papel/sinal na saca com o nome "${usuario}".
+Verifica se há lixo visível e se existe um papel/sinal na saca com o nome "${utilizador}".
 TENS DE RESPONDER ASSIM
 Formato de resposta:
 {

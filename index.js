@@ -1,6 +1,5 @@
 import express from "express";
 import { GoogleGenAI } from "@google/genai"; // Mantido como tinhas
-import { GoogleGenAI } from "@google/genai";
 
 const app = express();
 app.use(express.json({ limit: "20mb" })); // Aumentado para fotos de melhor qualidade

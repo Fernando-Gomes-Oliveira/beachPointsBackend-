@@ -19,7 +19,6 @@ const PRAIAS_COORDS = {
     "Costa da Caparica": { lat: 38.6421, lon: -9.2315 } 
 };
 
-// --- FUNÇÃO DE DISTÂNCIA ---
 function getDistanciaKM(lat1, lon1, lat2, lon2) {
     const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -31,23 +30,20 @@ function getDistanciaKM(lat1, lon1, lat2, lon2) {
 }
 
 app.post("/verificar-lixo", async (req, res) => {
-  try {
-    // Adicionamos usuario, lat e lon aos dados recebidos
-    const { imagemBase64, praia, usuario, lat, lon } = req.body;
+    try {
+        const { imagemBase64, praia, usuario, lat, lon } = req.body;
 
-    // 1. Validar Localização (Raio de 3km)
-    if (praia !== "Outra" && PRAIAS_COORDS[praia]) {
-        const km = getDistanciaKM(lat, lon, PRAIAS_COORDS[praia].lat, PRAIAS_COORDS[praia].lon);
-        if (km > 3.0) {
-            return res.json({ 
-                aprovado: false, 
-                motivo: `Distância: ${km.toFixed(1)}km. Deves estar na praia!` 
-            });
+        // 1. Validar Localização Geográfica (Lógica de servidor)
+        let localizacaoReal = true;
+        if (praia !== "Outra" && PRAIAS_COORDS[praia]) {
+            const km = getDistanciaKM(lat, lon, PRAIAS_COORDS[praia].lat, PRAIAS_COORDS[praia].lon);
+            if (km > 3.0) {
+                localizacaoReal = false;
+            }
         }
-    }
 
-    // 2. Teu Prompt atualizado com o nome do user
-    const prompt = `
+        // 2. Novo Prompt conforme o teu pedido
+        const prompt = `
 Analisa esta foto da praia ${praia}, vais apenas responder em formato JSON válido, nada mais. 
 Vais analisar se tem lixo vísivel, tem de haver um papel na saca do lixo com o nome exato do "${usuario}".
 
@@ -60,39 +56,45 @@ Vais escrever desta forma APENAS:
 }
 `;
 
-    const result = await ai.models.generateContent({
-      model: modelName,
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
+        const result = await model.generateContent([
+            prompt,
             {
-              inlineData: {
-                data: imagemBase64,
-                mimeType: "image/jpeg",
-              },
-            },
-          ],
-        },
-      ],
-    });
+                inlineData: {
+                    data: imagemBase64,
+                    mimeType: "image/jpeg"
+                }
+            }
+        ]);
 
-    const text = result.text.replace(/```json|```/g, "").trim();
+        const response = await result.response;
+        let text = response.text();
 
-    const jsonStart = text.indexOf("{");
-    const jsonEnd = text.lastIndexOf("}");
-    const jsonLimpo = text.slice(jsonStart, jsonEnd + 1);
+        // Limpeza de Markdown se a IA incluir
+        text = text.replace(/```json|```/g, "").trim();
+        
+        // Parsing para garantir que enviamos um objeto JSON puro
+        const resultadoFinal = JSON.parse(text);
 
-    res.json(JSON.parse(jsonLimpo));
+        // Se a localização_real foi falsa no cálculo inicial, forçamos no JSON
+        if (!localizacaoReal) {
+            resultadoFinal.localização_real = false;
+            resultadoFinal.Aprovado = false;
+        }
 
-  } catch (e) {
-    console.error("ERRO NO MOMENTO DO ENVIO:", e.message);
-    res.status(500).json({
-      aprovado: false,
-      motivo: "Erro na IA: " + e.message,
-    });
-  }
+        res.json(resultadoFinal);
+
+    } catch (e) {
+        console.error("ERRO:", e.message);
+        res.status(500).json({
+            Aprovado: false,
+            erro: e.message
+        });
+    }
+});
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Servidor Online na porta ${PORT}`);
 });
 
 const PORT = process.env.PORT || 10000;

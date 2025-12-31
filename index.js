@@ -13,10 +13,8 @@ const modelName = "gemini-2.5-flash";
 
 // --- BASE DE DADOS DE LOCALIZAÇÃO ---
 const PRAIAS_COORDS = {
-    "Praia de Matosinhos": { lat: 41.19573809, lon: -8.70907909 },
-    "Praia da Rocha": { lat: 37.11773, lon: -8.53642 },
-    "Praia do Guincho": { lat: 38.73273264, lon: -9.47252022 },
-    "Costa da Caparica": { lat: 38.6421, lon: -9.2315 } 
+    "Praia Norte": { lat: 41.6972286129189, lon: -8.850855546566946 },
+   
 };
 
 // --- FUNÇÃO DE DISTÂNCIA ---
